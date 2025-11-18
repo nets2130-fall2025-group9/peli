@@ -1,0 +1,1 @@
+export const UPENN_DOMAIN = "upenn.edu";
