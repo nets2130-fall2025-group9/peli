@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/scrape",
+      "schedule": "0 11 * * *",
+      "description": "Runs daily at 11am UTC (7am EST)"
+    }
+  ]
+}
