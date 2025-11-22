@@ -5,7 +5,7 @@ export type MealData = Record<string, string[]>;
 export type DiningHallData = Record<string, MealData>;
 
 export async function scrapeDiningHalls(): Promise<DiningHallData> {
-  const allDiningHallData: DiningHallData = {};
+  const allDiningHallData: DiningHallData = {};
 
   await Promise.all(
     Object.entries(DINING_HALL_URLS).map(
@@ -50,7 +50,7 @@ export async function scrapeDiningHalls(): Promise<DiningHallData> {
         allDiningHallData[diningHallName] = mealData;
       }
     )
-  );
+  );
 
-  return allDiningHallData;
+  return allDiningHallData;
 }
