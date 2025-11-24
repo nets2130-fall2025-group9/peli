@@ -1,11 +1,19 @@
 import * as cheerio from "cheerio";
 import { DINING_HALL_URLS } from "@/lib/constants";
-
-export type MealData = Record<string, string[]>;
-export type DiningHallData = Record<string, MealData>;
+import { DiningHallData, MealData } from "@/lib/types";
 
 export async function scrapeDiningHalls(): Promise<DiningHallData> {
-  const allDiningHallData: DiningHallData = {};
+  const allDiningHallData: DiningHallData = Object.keys(
+    DINING_HALL_URLS
+  ).reduce((acc, diningHall) => {
+    acc[diningHall as keyof DiningHallData] = {
+      breakfast: { start_time: "", end_time: "", menu: [] },
+      lunch: { start_time: "", end_time: "", menu: [] },
+      dinner: { start_time: "", end_time: "", menu: [] },
+      brunch: { start_time: "", end_time: "", menu: [] },
+    };
+    return acc;
+  }, {} as DiningHallData);
 
   await Promise.all(
     Object.entries(DINING_HALL_URLS).map(
@@ -15,7 +23,12 @@ export async function scrapeDiningHalls(): Promise<DiningHallData> {
 
         const $ = cheerio.load(html);
 
-        const mealData: MealData = {};
+        const mealData: MealData = {
+          breakfast: { start_time: "", end_time: "", menu: [] },
+          lunch: { start_time: "", end_time: "", menu: [] },
+          dinner: { start_time: "", end_time: "", menu: [] },
+          brunch: { start_time: "", end_time: "", menu: [] },
+        };
 
         // for each daypart panel
         $("section.panel.s-wrapper.site-panel.site-panel--daypart").each(
@@ -26,6 +39,23 @@ export async function scrapeDiningHalls(): Promise<DiningHallData> {
             const mealName = $section.attr("data-jump-nav-title");
 
             if (!mealName) return;
+
+            // get meal time
+            const timeText = $section
+              .find("div.site-panel__daypart-time")
+              .text()
+              .trim();
+            
+            // parse start and end time (format: "7:00 am - 10:00 am")
+            let start_time = "";
+            let end_time = "";
+            if (timeText) {
+              const timeParts = timeText.split("-").map(t => t.trim());
+              if (timeParts.length === 2) {
+                start_time = timeParts[0];
+                end_time = timeParts[1];
+              }
+            }
 
             // get all menu items from the div with aria-hidden="false"
             const items: string[] = [];
@@ -42,12 +72,17 @@ export async function scrapeDiningHalls(): Promise<DiningHallData> {
               });
 
             if (items.length > 0) {
-              mealData[mealName.toLowerCase()] = items;
+              mealData[mealName.toLowerCase() as keyof typeof mealData] = {
+                start_time,
+                end_time,
+                menu: items,
+              };
             }
           }
         );
 
-        allDiningHallData[diningHallName] = mealData;
+        allDiningHallData[diningHallName as keyof typeof allDiningHallData] =
+          mealData;
       }
     )
   );
