@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card";
 import { useSignInContext } from "@/context/AuthProvider";
 import { logInSchema } from "@/lib/validations";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { useForm } from "@/hooks/useForm";
 import { useRouter } from "next/navigation";
 
 export const LogInForm = () => {
   const router = useRouter();
   const { isLoaded, signIn, setActive } = useSignInContext();
 
-  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useAuthForm({
+  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useForm({
     schema: logInSchema,
     initialValues: {
       email: "",

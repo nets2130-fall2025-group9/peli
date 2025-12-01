@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { useSignUpContext } from "@/context/AuthProvider";
 import { verifyEmailSchema } from "@/lib/validations";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { useForm } from "@/hooks/useForm";
 import { useResendCode } from "@/hooks/useResendCode";
 
 export function VerifyEmailForm() {
@@ -22,7 +22,7 @@ export function VerifyEmailForm() {
   const { signUp, isLoaded, setActive } = useSignUpContext();
 
   const { formData, error, setError, isLoading, handleChange, handleSubmit } =
-    useAuthForm({
+  useForm({
       schema: verifyEmailSchema,
       initialValues: {
         code: "",

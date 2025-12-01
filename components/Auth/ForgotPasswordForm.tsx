@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/card";
 import { useForgotPasswordContext } from "@/context/AuthProvider";
 import { forgotPasswordSchema } from "@/lib/validations";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { useForm } from "@/hooks/useForm";
 
 export const ForgotPasswordForm = () => {
   const { signIn, isLoaded, setStep } = useForgotPasswordContext();
 
-  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useAuthForm({
+  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useForm({
     schema: forgotPasswordSchema,
     initialValues: {
       email: "",
