@@ -1,5 +1,7 @@
 "use server";
 
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { UPENN_DOMAIN } from "@/lib/constants";
 
 export async function validatePennEmail(email: string) {
@@ -24,3 +26,84 @@ export async function validatePennEmail(email: string) {
     message: "Email domain validated successfully",
   };
 }
+
+export async function getUserProfile(userId: string | null, id: string) {
+  try {
+    const client = await clerkClient();
+    const profileUser = await client.users.getUser(id);
+
+    const isOwnProfile = userId === id;
+
+    return {
+      firstName: profileUser.firstName,
+      lastName: profileUser.lastName,
+      emailAddress:
+        profileUser.emailAddresses.find(
+          (email) => email.id === profileUser.primaryEmailAddressId
+        )?.emailAddress || "",
+      isOwnProfile,
+    };
+  } catch (error) {
+    return null;
+  }
+}
+export async function updateUserProfile(data: {
+  firstName: string;
+  lastName: string;
+}) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    const client = await clerkClient();
+    await client.users.updateUser(userId, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+    });
+
+    revalidatePath(`/account/${userId}`);
+
+    return {
+      success: true,
+      message: "Profile updated successfully",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to update profile",
+    };
+  }
+}
+
+export async function deleteUserAccount() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return {
+        success: false,
+        error: "Unauthorized",
+      };
+    }
+
+    const client = await clerkClient();
+    await client.users.deleteUser(userId);
+
+    return {
+      success: true,
+      message: "Account deleted successfully",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to delete account",
+    };
+  }
+}
+

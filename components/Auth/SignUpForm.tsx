@@ -15,12 +15,12 @@ import {
 import { useSignUpContext } from "@/context/AuthProvider";
 import { signUpSchema } from "@/lib/validations";
 import { validatePennEmail } from "@/lib/actions";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { useForm } from "@/hooks/useForm";
 
 export const SignUpForm = () => {
   const { signUp, isLoaded, setStep } = useSignUpContext();
 
-  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useAuthForm({
+  const { formData, error, setError, isLoading, handleChange, handleSubmit } = useForm({
     schema: signUpSchema,
     initialValues: {
       firstName: "",
