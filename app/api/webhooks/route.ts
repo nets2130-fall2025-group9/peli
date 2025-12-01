@@ -8,23 +8,39 @@ export async function POST(req: NextRequest) {
 
     const { id } = evt.data;
 
+    if (!id) {
+      return new Response("Missing user ID", { status: 400 });
+    }
+
     switch (evt.type) {
-      case "user.created":
+      case "user.created": {
+        const { email_addresses, first_name, last_name } = evt.data;
+        if (!email_addresses || !first_name || !last_name) {
+          return new Response("Missing user data", { status: 400 });
+        }
+
         await createUser(
           id,
-          evt.data.email_addresses[0].email_address,
-          evt.data.first_name,
-          evt.data.last_name
+          email_addresses[0].email_address,
+          first_name,
+          last_name
         );
         break;
-      case "user.updated":
+      }
+      case "user.updated": {
+        const { email_addresses, first_name, last_name } = evt.data;
+        if (!email_addresses || !first_name || !last_name) {
+          return new Response("Missing user data", { status: 400 });
+        }
+
         await updateUser(
           id,
-          evt.data.email_addresses[0].email_address,
-          evt.data.first_name,
-          evt.data.last_name
+          email_addresses[0].email_address,
+          first_name,
+          last_name
         );
         break;
+      }
       case "user.deleted":
         await deleteUser(id);
         break;

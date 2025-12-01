@@ -7,10 +7,10 @@ interface Props {
   children: React.ReactNode[];
 };
 
-export function MultiStepAuthManager({
+export const MultiStepAuthManager = ({
   step,
   children,
-}: Props) {
+}: Props) => {
   if (!children || children.length === 0) {
     return null;
   }

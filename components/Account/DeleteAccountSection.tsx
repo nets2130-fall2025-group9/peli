@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { deleteUserAccount } from "@/lib/actions";
 
-export function DeleteAccountSection() {
+export const DeleteAccountSection = () => {
   const router = useRouter();
   const { signOut } = useAuth();
 
