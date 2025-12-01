@@ -17,7 +17,7 @@ import { verifyEmailSchema } from "@/lib/validations";
 import { useForm } from "@/hooks/useForm";
 import { useResendCode } from "@/hooks/useResendCode";
 
-export function VerifyEmailForm() {
+export const VerifyEmailForm = () => {
   const router = useRouter();
   const { signUp, isLoaded, setActive } = useSignUpContext();
 

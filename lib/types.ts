@@ -1,4 +1,5 @@
 import { SignInResource, SignUpResource } from "@clerk/types";
+import { Database } from "@/supabase/types";
 
 export type Auth = {
   isLoaded: boolean;
@@ -9,6 +10,18 @@ export type Auth = {
     | undefined;
 };
 
+//------------------------------------------------
+// TYPES IDENTICAL TO DATABASE TABLES (use for direct database operations)
+//------------------------------------------------
+export type MenuItemDB = Database["public"]["Tables"]["menu_item"]["Row"];
+export type MealScheduleDB = Database["public"]["Tables"]["meal_schedule"]["Row"];
+export type UserDB = Database["public"]["Tables"]["user"]["Row"];
+export type RatingDB = Database["public"]["Tables"]["rating"]["Row"];
+export type DiningHallDB = Database["public"]["Tables"]["dining_hall"]["Row"];
+
+//------------------------------------------------
+// TYPES NOT IDENTICAL TO DATABASE TABLES (use for frontend operations)
+//------------------------------------------------
 export type DiningHall =
   | "1920-commons"
   | "kings-court-english-house"
@@ -29,18 +42,9 @@ export type MealData = Record<MealType, MealInfo>;
 
 export type DiningHallData = Record<DiningHall, MealData>;
 
-export type MenuItem = {
-  name: string;
-  dining_hall: DiningHall;
-  meal_types: MealType[];
-  created_at: string;
-  updated_at: string;
-};
-
-export type MealSchedule = {
-  dining_hall: DiningHall;
-  meal_type: MealType;
-  start_time: string;
-  end_time: string;
-  created_at: string;
+export type Rating = RatingDB & {
+  menu_item: {
+    name: string;
+    dining_hall: string;
+  };
 };

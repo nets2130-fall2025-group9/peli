@@ -21,11 +21,11 @@ interface Props {
   emailAddress: string;
 };
 
-export function ProfileEditForm({
+export const ProfileEditForm = ({
   initialFirstName,
   initialLastName,
   emailAddress,
-}: Props) {
+}: Props) => {
   const {
     formData,
     error,

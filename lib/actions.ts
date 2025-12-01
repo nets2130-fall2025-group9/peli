@@ -3,6 +3,8 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { UPENN_DOMAIN } from "@/lib/constants";
+import { Rating } from "@/lib/types";
+import { getUserRatings as getUserRatingsFromDB } from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
   if (!email || typeof email !== "string") {
@@ -28,24 +30,20 @@ export async function validatePennEmail(email: string) {
 }
 
 export async function getUserProfile(userId: string | null, id: string) {
-  try {
-    const client = await clerkClient();
-    const profileUser = await client.users.getUser(id);
+  const client = await clerkClient();
+  const profileUser = await client.users.getUser(id);
 
-    const isOwnProfile = userId === id;
+  const isOwnProfile = userId === id;
 
-    return {
-      firstName: profileUser.firstName,
-      lastName: profileUser.lastName,
-      emailAddress:
-        profileUser.emailAddresses.find(
-          (email) => email.id === profileUser.primaryEmailAddressId
-        )?.emailAddress || "",
-      isOwnProfile,
-    };
-  } catch (error) {
-    return null;
-  }
+  return {
+    firstName: profileUser.firstName,
+    lastName: profileUser.lastName,
+    emailAddress:
+      profileUser.emailAddresses.find(
+        (email) => email.id === profileUser.primaryEmailAddressId
+      )?.emailAddress || "",
+    isOwnProfile,
+  };
 }
 export async function updateUserProfile(data: {
   firstName: string;
@@ -107,3 +105,39 @@ export async function deleteUserAccount() {
   }
 }
 
+export async function getUserRatings(userId: string): Promise<{
+  success: boolean;
+  error?: string;
+  ratings: Rating[];
+  summary: { totalRatings: number; averageRating: number };
+}> {
+  try {
+    const ratings = await getUserRatingsFromDB(userId);
+
+    const totalRatings = ratings?.length || 0;
+    const averageRating =
+    totalRatings > 0
+        ? ratings.reduce((sum, rating) => sum + (rating.rating || 0), 0) /
+          totalRatings
+        : 0;
+
+    return {
+      success: true,
+      ratings: ratings || [],
+      summary: {
+        totalRatings,
+        averageRating: Math.round(averageRating * 10) / 10,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch ratings",
+      ratings: [],
+      summary: {
+        totalRatings: 0,
+        averageRating: 0,
+      },
+    };
+  }
+}
