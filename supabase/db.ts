@@ -147,3 +147,93 @@ export async function getMenuItems(
 
   return data || [];
 }
+
+export async function getMenuItemsWithStats(
+  diningHall: DiningHall,
+  mealType: string
+) {
+  const { data: menuItems, error: menuItemsError } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("dining_hall", diningHall)
+    .contains("meal_types", [mealType])
+    .order("name", { ascending: true });
+
+  if (menuItemsError) {
+    throw menuItemsError;
+  }
+
+  if (!menuItems || menuItems.length === 0) {
+    return [];
+  }
+
+  // Get rating statistics for each menu item
+  const menuItemIds = menuItems.map((item) => item.id);
+  const { data: ratings, error: ratingsError } = await supabase
+    .from("rating")
+    .select("menu_item_id, rating")
+    .in("menu_item_id", menuItemIds);
+
+  if (ratingsError) {
+    throw ratingsError;
+  }
+
+  // Calculate stats for each menu item
+  const menuItemsWithStats = menuItems.map((item) => {
+    const itemRatings =
+      ratings?.filter((r) => r.menu_item_id === item.id) || [];
+    const totalRatings = itemRatings.length;
+    const averageRating =
+      totalRatings > 0
+        ? itemRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+        : 0;
+
+    return {
+      ...item,
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      totalRatings,
+    };
+  });
+
+  return menuItemsWithStats;
+}
+
+export async function getMenuItemById(id: string) {
+  const { data, error } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getMenuItemWithStats(id: string) {
+  const menuItem = await getMenuItemById(id);
+
+  // Get rating statistics
+  const { data: ratings, error: ratingsError } = await supabase
+    .from("rating")
+    .select("rating")
+    .eq("menu_item_id", id);
+
+  if (ratingsError) {
+    throw ratingsError;
+  }
+
+  const totalRatings = ratings?.length || 0;
+  const averageRating =
+    totalRatings > 0
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+      : 0;
+
+  return {
+    ...menuItem,
+    averageRating: Math.round(averageRating * 10) / 10,
+    totalRatings,
+  };
+}

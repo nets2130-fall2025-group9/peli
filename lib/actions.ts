@@ -8,6 +8,7 @@ import {
   DiningHallDB,
   MealScheduleDB,
   MenuItemDB,
+  MenuItemWithStats,
   Rating,
 } from "@/lib/types";
 import {
@@ -15,6 +16,8 @@ import {
   getUserRatings as getUserRatingsFromDB,
   getDailyMealSchedule as getDailyMealScheduleFromDB,
   getMenuItems as getMenuItemsFromDB,
+  getMenuItemsWithStats as getMenuItemsWithStatsFromDB,
+  getMenuItemWithStats as getMenuItemWithStatsFromDB,
 } from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
@@ -205,10 +208,10 @@ export async function getMenuItems(
 ): Promise<{
   success: boolean;
   error?: string;
-  menuItems: MenuItemDB[];
+  menuItems: MenuItemWithStats[];
 }> {
   try {
-    const menuItems = await getMenuItemsFromDB(diningHall, mealType);
+    const menuItems = await getMenuItemsWithStatsFromDB(diningHall, mealType);
     return {
       success: true,
       menuItems: menuItems || [],
@@ -218,6 +221,25 @@ export async function getMenuItems(
       success: false,
       error: "Failed to fetch menu items",
       menuItems: [],
+    };
+  }
+}
+
+export async function getMenuItem(id: string): Promise<{
+  success: boolean;
+  error?: string;
+  menuItem?: MenuItemWithStats;
+}> {
+  try {
+    const menuItem = await getMenuItemWithStatsFromDB(id);
+    return {
+      success: true,
+      menuItem,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch menu item",
     };
   }
 }

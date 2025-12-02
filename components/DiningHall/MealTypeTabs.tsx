@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { getMenuItems } from "@/lib/actions";
-import { DiningHall, MealScheduleDB, MenuItemDB } from "@/lib/types";
+import { DiningHall, MealScheduleDB, MenuItemWithStats } from "@/lib/types";
 import MenuItemsGrid from "@/components/DiningHall/MenuItemsGrid";
 
 type MealScheduleWithStatus = MealScheduleDB & { isActive: boolean };
@@ -21,6 +23,8 @@ export default function MealTypeTabs({
   onMealTypeChange,
   diningHall,
 }: Props) {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const selectedMeal = mealSchedule.find(
     (meal) => meal.meal_type === selectedMealType
   );
@@ -38,6 +42,15 @@ export default function MealTypeTabs({
     enabled: !!selectedMealType && isSelectedMealActive,
   });
 
+  // Filter menu items based on search query
+  const filteredMenuItems = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return menuItems;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    return menuItems.filter((item) => item.name.toLowerCase().includes(query));
+  }, [menuItems, searchQuery]);
+
   const formatMealType = (mealType: string) => {
     return mealType.charAt(0).toUpperCase() + mealType.slice(1);
   };
@@ -53,7 +66,11 @@ export default function MealTypeTabs({
   }
 
   return (
-    <Tabs value={selectedMealType} onValueChange={onMealTypeChange} className="w-full">
+    <Tabs
+      value={selectedMealType}
+      onValueChange={onMealTypeChange}
+      className="w-full"
+    >
       <TabsList className="mb-6 w-full justify-start overflow-x-auto">
         {mealSchedule.map((meal) => (
           <TabsTrigger
@@ -72,7 +89,19 @@ export default function MealTypeTabs({
 
       {selectedMealType ? (
         <TabsContent value={selectedMealType} className="mt-0">
-          <MenuItemsGrid menuItems={menuItems} isLoading={isLoadingMenuItems} />
+          <div className="mb-4">
+            <Input
+              type="text"
+              placeholder="Search menu items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <MenuItemsGrid
+            menuItems={filteredMenuItems}
+            isLoading={isLoadingMenuItems}
+          />
         </TabsContent>
       ) : (
         <div className="flex items-center justify-center py-12">
@@ -84,4 +113,3 @@ export default function MealTypeTabs({
     </Tabs>
   );
 }
-
