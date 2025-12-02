@@ -3,8 +3,19 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { UPENN_DOMAIN } from "@/lib/constants";
-import { Rating } from "@/lib/types";
-import { getUserRatings as getUserRatingsFromDB } from "@/supabase/db";
+import {
+  DiningHall,
+  DiningHallDB,
+  MealScheduleDB,
+  MenuItemDB,
+  Rating,
+} from "@/lib/types";
+import {
+  getDiningHalls as getDiningHallsFromDB,
+  getUserRatings as getUserRatingsFromDB,
+  getDailyMealSchedule as getDailyMealScheduleFromDB,
+  getMenuItems as getMenuItemsFromDB,
+} from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
   if (!email || typeof email !== "string") {
@@ -116,7 +127,7 @@ export async function getUserRatings(userId: string): Promise<{
 
     const totalRatings = ratings?.length || 0;
     const averageRating =
-    totalRatings > 0
+      totalRatings > 0
         ? ratings.reduce((sum, rating) => sum + (rating.rating || 0), 0) /
           totalRatings
         : 0;
@@ -138,6 +149,75 @@ export async function getUserRatings(userId: string): Promise<{
         totalRatings: 0,
         averageRating: 0,
       },
+    };
+  }
+}
+
+export async function getDiningHalls(): Promise<{
+  success: boolean;
+  error?: string;
+  diningHalls: DiningHallDB[];
+}> {
+  try {
+    const diningHalls = await getDiningHallsFromDB();
+    return {
+      success: true,
+      diningHalls: diningHalls || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch dining halls",
+      diningHalls: [],
+    };
+  }
+}
+
+export async function getDailyMealSchedule(diningHall: DiningHall): Promise<{
+  success: boolean;
+  error?: string;
+  mealSchedule: MealScheduleDB[];
+}> {
+  try {
+    const mealSchedule = await getDailyMealScheduleFromDB(diningHall);
+    const currentDatetime = new Date();
+    const mealScheduleWithStatus = mealSchedule.map((meal) => ({
+      ...meal,
+      isActive: new Date(meal.start_time) <= currentDatetime,
+    }));
+
+    return {
+      success: true,
+      mealSchedule: mealScheduleWithStatus || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch meal schedule",
+      mealSchedule: [],
+    };
+  }
+}
+
+export async function getMenuItems(
+  diningHall: DiningHall,
+  mealType: string
+): Promise<{
+  success: boolean;
+  error?: string;
+  menuItems: MenuItemDB[];
+}> {
+  try {
+    const menuItems = await getMenuItemsFromDB(diningHall, mealType);
+    return {
+      success: true,
+      menuItems: menuItems || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch menu items",
+      menuItems: [],
     };
   }
 }

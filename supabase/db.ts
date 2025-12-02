@@ -2,7 +2,13 @@ import {
   createSupabaseClient,
   createAdminSupabaseClient,
 } from "@/lib/supabase";
-import { MealScheduleDB, MenuItemDB, Rating } from "@/lib/types";
+import {
+  DiningHall,
+  DiningHallDB,
+  MealScheduleDB,
+  MenuItemDB,
+  Rating,
+} from "@/lib/types";
 
 const supabase = createSupabaseClient();
 
@@ -97,4 +103,47 @@ export async function getUserRatings(userId: string): Promise<Rating[]> {
   }
 
   return data;
+}
+
+export async function getDiningHalls(): Promise<DiningHallDB[]> {
+  const { data, error } = await supabase.from("dining_hall").select("*");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getDailyMealSchedule(
+  diningHall: DiningHall
+): Promise<MealScheduleDB[]> {
+  const { data, error } = await supabase
+    .from("meal_schedule")
+    .select("*")
+    .eq("dining_hall", diningHall);
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getMenuItems(
+  diningHall: DiningHall,
+  mealType: string
+): Promise<MenuItemDB[]> {
+  const { data, error } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("dining_hall", diningHall)
+    .contains("meal_types", [mealType])
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
 }
