@@ -57,5 +57,8 @@ export async function createMenuItems(menuItems: MenuItem[]) {
 // MEAL SCHEDULE
 // ------------------------------------------------
 export async function createMealSchedule(mealSchedule: MealSchedule[]) {
-  await supabaseAdmin.from("meal_schedule").insert(mealSchedule);
+  await supabaseAdmin.from("meal_schedule").upsert(mealSchedule, {
+    onConflict: "dining_hall,meal_type",
+    ignoreDuplicates: false, // update rows if duplicates found
+  });
 }
