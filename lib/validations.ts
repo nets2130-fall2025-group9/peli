@@ -91,3 +91,16 @@ export const changePasswordSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const createRatingSchema = z.object({
+  menu_item_id: z.string().uuid("Invalid menu item ID"),
+  rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5"),
+  description: z.string().optional().nullable(),
+  image_path: z.string().optional().nullable(),
+});
+
+export const updateRatingSchema = z.object({
+  rating: z.number().int().min(1).max(5, "Rating must be between 1 and 5").optional(),
+  description: z.string().optional().nullable(),
+  image_path: z.string().optional().nullable(),
+});
