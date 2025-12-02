@@ -14,15 +14,15 @@ import {
 } from "@/components/ui/card";
 import { useForgotPasswordContext } from "@/context/AuthProvider";
 import { resetPasswordSchema } from "@/lib/validations";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { useForm } from "@/hooks/useForm";
 import { useResendCode } from "@/hooks/useResendCode";
 
-export function ResetPasswordForm() {
+export const ResetPasswordForm = () => {
   const router = useRouter();
   const { signIn, isLoaded } = useForgotPasswordContext();
 
   const { formData, error, setError, isLoading, handleChange, handleSubmit } =
-    useAuthForm({
+  useForm({
       schema: resetPasswordSchema,
       initialValues: {
         code: "",

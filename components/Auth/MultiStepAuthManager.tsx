@@ -2,15 +2,15 @@
 
 import React from "react";
 
-type MultiStepAuthManagerProps = {
+interface Props {
   step: number;
   children: React.ReactNode[];
 };
 
-export function MultiStepAuthManager({
+export const MultiStepAuthManager = ({
   step,
   children,
-}: MultiStepAuthManagerProps) {
+}: Props) => {
   if (!children || children.length === 0) {
     return null;
   }

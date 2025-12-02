@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { z } from "zod";
 
-interface UseAuthFormOptions<T extends z.ZodTypeAny> {
+interface UseFormOptions<T extends z.ZodTypeAny> {
   schema: T;
   initialValues: z.infer<T>;
   onSubmit: (data: z.infer<T>) => Promise<void>;
   isLoaded?: boolean;
 }
 
-export function useAuthForm<T extends z.ZodType<any, any>>({
+export function useForm<T extends z.ZodType<any, any>>({
   schema,
   initialValues,
   onSubmit,
   isLoaded = true,
-}: UseAuthFormOptions<T>) {
+}: UseFormOptions<T>) {
   const [formData, setFormData] = useState<z.infer<T>>(initialValues);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,11 +24,14 @@ export function useAuthForm<T extends z.ZodType<any, any>>({
       ...prev,
       [e.target.id]: e.target.value,
     }));
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     const validation = schema.safeParse(formData);
 
@@ -45,6 +49,7 @@ export function useAuthForm<T extends z.ZodType<any, any>>({
     try {
       await onSubmit(formData);
     } catch (err: any) {
+      console.error(err);
       setError(err.errors?.[0]?.longMessage || "An error occurred");
     } finally {
       setIsLoading(false);
@@ -56,6 +61,8 @@ export function useAuthForm<T extends z.ZodType<any, any>>({
     setFormData,
     error,
     setError,
+    success,
+    setSuccess,
     isLoading,
     setIsLoading,
     handleChange,

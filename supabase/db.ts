@@ -1,5 +1,10 @@
-import { createAdminSupabaseClient } from "@/lib/supabase";
-import { MealSchedule, MenuItem } from "@/lib/types";
+import {
+  createSupabaseClient,
+  createAdminSupabaseClient,
+} from "@/lib/supabase";
+import { MealScheduleDB, MenuItemDB, Rating } from "@/lib/types";
+
+const supabase = createSupabaseClient();
 
 // for all user, meal schedule, and menu item operations, we use admin client
 // which bypasses postgres RLS policies. This is done because all of these are either
@@ -10,10 +15,10 @@ const supabaseAdmin = createAdminSupabaseClient();
 // USER
 // ------------------------------------------------
 export async function createUser(
-  id: string | undefined,
+  id: string,
   email: string,
-  firstName: string | null,
-  lastName: string | null
+  firstName: string,
+  lastName: string
 ) {
   await supabaseAdmin.from("user").insert({
     id,
@@ -24,10 +29,10 @@ export async function createUser(
 }
 
 export async function updateUser(
-  id: string | undefined,
+  id: string,
   email: string,
-  firstName: string | null,
-  lastName: string | null
+  firstName: string,
+  lastName: string
 ) {
   await supabaseAdmin
     .from("user")
@@ -39,14 +44,14 @@ export async function updateUser(
     .eq("id", id);
 }
 
-export async function deleteUser(id: string | undefined) {
+export async function deleteUser(id: string) {
   await supabaseAdmin.from("user").delete().eq("id", id);
 }
 
 // ------------------------------------------------
 // MENU ITEM
 // ------------------------------------------------
-export async function createMenuItems(menuItems: MenuItem[]) {
+export async function createMenuItems(menuItems: MenuItemDB[]) {
   await supabaseAdmin.from("menu_item").upsert(menuItems, {
     onConflict: "name,dining_hall",
     ignoreDuplicates: false, // update rows if duplicates found
@@ -56,9 +61,40 @@ export async function createMenuItems(menuItems: MenuItem[]) {
 // ------------------------------------------------
 // MEAL SCHEDULE
 // ------------------------------------------------
-export async function createMealSchedule(mealSchedule: MealSchedule[]) {
+export async function createMealSchedule(mealSchedule: MealScheduleDB[]) {
   await supabaseAdmin.from("meal_schedule").upsert(mealSchedule, {
     onConflict: "dining_hall,meal_type",
     ignoreDuplicates: false, // update rows if duplicates found
   });
+}
+
+// ------------------------------------------------
+// RATING
+// ------------------------------------------------
+export async function getUserRatings(userId: string): Promise<Rating[]> {
+  const { data, error } = await supabase
+    .from("rating")
+    .select(
+      `
+      id,
+      user_id,
+      menu_item_id,
+      rating,
+      description,
+      image_path,
+      created_at,
+      menu_item (
+        name,
+        dining_hall
+      )
+    `
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }
