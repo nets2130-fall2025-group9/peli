@@ -50,6 +50,13 @@ export type Rating = RatingDB & {
   };
 };
 
+export type MenuItemRating = RatingDB & {
+  user: {
+    first_name: string;
+    last_name: string;
+  } | null;
+};
+
 export type MenuItemWithStats = MenuItemDB & {
   averageRating: number;
   totalRatings: number;

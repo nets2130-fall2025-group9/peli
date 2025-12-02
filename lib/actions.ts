@@ -9,6 +9,7 @@ import {
   MealScheduleDB,
   MenuItemDB,
   MenuItemWithStats,
+  MenuItemRating,
   Rating,
 } from "@/lib/types";
 import {
@@ -18,6 +19,8 @@ import {
   getMenuItems as getMenuItemsFromDB,
   getMenuItemsWithStats as getMenuItemsWithStatsFromDB,
   getMenuItemWithStats as getMenuItemWithStatsFromDB,
+  getMenuItemRatings as getMenuItemRatingsFromDB,
+  getUserRatingForMenuItem as getUserRatingForMenuItemFromDB,
 } from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
@@ -240,6 +243,56 @@ export async function getMenuItem(id: string): Promise<{
     return {
       success: false,
       error: "Failed to fetch menu item",
+    };
+  }
+}
+
+export async function getMenuItemRatings(menuItemId: string): Promise<{
+  success: boolean;
+  error?: string;
+  ratings: MenuItemRating[];
+}> {
+  try {
+    const ratings = await getMenuItemRatingsFromDB(menuItemId);
+    return {
+      success: true,
+      ratings: ratings || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch ratings",
+      ratings: [],
+    };
+  }
+}
+
+export async function checkUserHasRated(
+  userId: string | null,
+  menuItemId: string
+): Promise<{
+  success: boolean;
+  hasRated: boolean;
+  error?: string;
+}> {
+  try {
+    if (!userId) {
+      return {
+        success: true,
+        hasRated: false,
+      };
+    }
+
+    const rating = await getUserRatingForMenuItemFromDB(userId, menuItemId);
+    return {
+      success: true,
+      hasRated: !!rating,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      hasRated: false,
+      error: "Failed to check rating status",
     };
   }
 }

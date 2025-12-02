@@ -1,7 +1,14 @@
-import { getMenuItem } from "@/lib/actions";
+import {
+  getMenuItem,
+  getMenuItemRatings,
+  checkUserHasRated,
+} from "@/lib/actions";
+import { auth } from "@clerk/nextjs/server";
 import { RatingStars } from "@/components/common/RatingStars";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import { ReviewsList } from "@/components/MenuItem/ReviewsList";
+import { ReviewButton } from "@/components/MenuItem/ReviewButton";
 
 export default async function MenuItemPage({
   params,
@@ -9,7 +16,11 @@ export default async function MenuItemPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { userId } = await auth();
+
   const { success, menuItem, error } = await getMenuItem(id);
+  const { ratings } = await getMenuItemRatings(id);
+  const { hasRated } = await checkUserHasRated(userId, id);
 
   if (!success || !menuItem) {
     return (
@@ -84,6 +95,15 @@ export default async function MenuItemPage({
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-6 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Reviews</h2>
+          {userId && <ReviewButton menuItemId={id} hasRated={hasRated} />}
+        </div>
+
+        <div className="mt-4">
+          <ReviewsList ratings={ratings} />
+        </div>
       </div>
     </div>
   );

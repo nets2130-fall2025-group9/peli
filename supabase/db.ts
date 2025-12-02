@@ -105,6 +105,53 @@ export async function getUserRatings(userId: string): Promise<Rating[]> {
   return data;
 }
 
+export async function getMenuItemRatings(menuItemId: string) {
+  const { data, error } = await supabase
+    .from("rating")
+    .select(
+      `
+      id,
+      user_id,
+      menu_item_id,
+      rating,
+      description,
+      image_path,
+      created_at,
+      user (
+        first_name,
+        last_name
+      )
+    `
+    )
+    .eq("menu_item_id", menuItemId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getUserRatingForMenuItem(
+  userId: string,
+  menuItemId: string
+) {
+  const { data, error } = await supabase
+    .from("rating")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("menu_item_id", menuItemId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    // PGRST116 is "not found" error
+    throw error;
+  }
+
+  return data || null;
+}
+
 export async function getDiningHalls(): Promise<DiningHallDB[]> {
   const { data, error } = await supabase.from("dining_hall").select("*");
 
