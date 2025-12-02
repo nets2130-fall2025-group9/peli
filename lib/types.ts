@@ -14,7 +14,8 @@ export type Auth = {
 // TYPES IDENTICAL TO DATABASE TABLES (use for direct database operations)
 //------------------------------------------------
 export type MenuItemDB = Database["public"]["Tables"]["menu_item"]["Row"];
-export type MealScheduleDB = Database["public"]["Tables"]["meal_schedule"]["Row"];
+export type MealScheduleDB =
+  Database["public"]["Tables"]["meal_schedule"]["Row"];
 export type UserDB = Database["public"]["Tables"]["user"]["Row"];
 export type RatingDB = Database["public"]["Tables"]["rating"]["Row"];
 export type DiningHallDB = Database["public"]["Tables"]["dining_hall"]["Row"];
@@ -47,4 +48,16 @@ export type Rating = RatingDB & {
     name: string;
     dining_hall: string;
   };
+};
+
+export type MenuItemRating = RatingDB & {
+  user: {
+    first_name: string;
+    last_name: string;
+  } | null;
+};
+
+export type MenuItemWithStats = MenuItemDB & {
+  averageRating: number;
+  totalRatings: number;
 };

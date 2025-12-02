@@ -2,6 +2,7 @@ import { type Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Navbar } from '@/components/Navbar'
+import TanstackQueryProvider from '@/providers/TanstackQueryProvider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -25,12 +26,14 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
+      <TanstackQueryProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <Navbar />
-          {children}
-        </body>
-      </html>
+            {children}
+          </body>
+        </html>
+      </TanstackQueryProvider>
     </ClerkProvider>
   )
 }

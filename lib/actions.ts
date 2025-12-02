@@ -3,8 +3,25 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { UPENN_DOMAIN } from "@/lib/constants";
-import { Rating } from "@/lib/types";
-import { getUserRatings as getUserRatingsFromDB } from "@/supabase/db";
+import {
+  DiningHall,
+  DiningHallDB,
+  MealScheduleDB,
+  MenuItemDB,
+  MenuItemWithStats,
+  MenuItemRating,
+  Rating,
+} from "@/lib/types";
+import {
+  getDiningHalls as getDiningHallsFromDB,
+  getUserRatings as getUserRatingsFromDB,
+  getDailyMealSchedule as getDailyMealScheduleFromDB,
+  getMenuItems as getMenuItemsFromDB,
+  getMenuItemsWithStats as getMenuItemsWithStatsFromDB,
+  getMenuItemWithStats as getMenuItemWithStatsFromDB,
+  getMenuItemRatings as getMenuItemRatingsFromDB,
+  getUserRatingForMenuItem as getUserRatingForMenuItemFromDB,
+} from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
   if (!email || typeof email !== "string") {
@@ -116,7 +133,7 @@ export async function getUserRatings(userId: string): Promise<{
 
     const totalRatings = ratings?.length || 0;
     const averageRating =
-    totalRatings > 0
+      totalRatings > 0
         ? ratings.reduce((sum, rating) => sum + (rating.rating || 0), 0) /
           totalRatings
         : 0;
@@ -138,6 +155,144 @@ export async function getUserRatings(userId: string): Promise<{
         totalRatings: 0,
         averageRating: 0,
       },
+    };
+  }
+}
+
+export async function getDiningHalls(): Promise<{
+  success: boolean;
+  error?: string;
+  diningHalls: DiningHallDB[];
+}> {
+  try {
+    const diningHalls = await getDiningHallsFromDB();
+    return {
+      success: true,
+      diningHalls: diningHalls || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch dining halls",
+      diningHalls: [],
+    };
+  }
+}
+
+export async function getDailyMealSchedule(diningHall: DiningHall): Promise<{
+  success: boolean;
+  error?: string;
+  mealSchedule: MealScheduleDB[];
+}> {
+  try {
+    const mealSchedule = await getDailyMealScheduleFromDB(diningHall);
+    const currentDatetime = new Date();
+    const mealScheduleWithStatus = mealSchedule.map((meal) => ({
+      ...meal,
+      isActive: new Date(meal.start_time) <= currentDatetime,
+    }));
+
+    return {
+      success: true,
+      mealSchedule: mealScheduleWithStatus || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch meal schedule",
+      mealSchedule: [],
+    };
+  }
+}
+
+export async function getMenuItems(
+  diningHall: DiningHall,
+  mealType: string
+): Promise<{
+  success: boolean;
+  error?: string;
+  menuItems: MenuItemWithStats[];
+}> {
+  try {
+    const menuItems = await getMenuItemsWithStatsFromDB(diningHall, mealType);
+    return {
+      success: true,
+      menuItems: menuItems || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch menu items",
+      menuItems: [],
+    };
+  }
+}
+
+export async function getMenuItem(id: string): Promise<{
+  success: boolean;
+  error?: string;
+  menuItem?: MenuItemWithStats;
+}> {
+  try {
+    const menuItem = await getMenuItemWithStatsFromDB(id);
+    return {
+      success: true,
+      menuItem,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch menu item",
+    };
+  }
+}
+
+export async function getMenuItemRatings(menuItemId: string): Promise<{
+  success: boolean;
+  error?: string;
+  ratings: MenuItemRating[];
+}> {
+  try {
+    const ratings = await getMenuItemRatingsFromDB(menuItemId);
+    return {
+      success: true,
+      ratings: ratings || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch ratings",
+      ratings: [],
+    };
+  }
+}
+
+export async function checkUserHasRated(
+  userId: string | null,
+  menuItemId: string
+): Promise<{
+  success: boolean;
+  hasRated: boolean;
+  error?: string;
+}> {
+  try {
+    if (!userId) {
+      return {
+        success: true,
+        hasRated: false,
+      };
+    }
+
+    const rating = await getUserRatingForMenuItemFromDB(userId, menuItemId);
+    return {
+      success: true,
+      hasRated: !!rating,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      hasRated: false,
+      error: "Failed to check rating status",
     };
   }
 }

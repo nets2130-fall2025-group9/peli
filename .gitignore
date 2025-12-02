@@ -44,3 +44,6 @@ next-env.d.ts
 /.clerk/
 
 package-lock.json
+
+# clerk
+/.clerk/

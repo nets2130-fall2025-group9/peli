@@ -2,7 +2,13 @@ import {
   createSupabaseClient,
   createAdminSupabaseClient,
 } from "@/lib/supabase";
-import { MealScheduleDB, MenuItemDB, Rating } from "@/lib/types";
+import {
+  DiningHall,
+  DiningHallDB,
+  MealScheduleDB,
+  MenuItemDB,
+  Rating,
+} from "@/lib/types";
 
 const supabase = createSupabaseClient();
 
@@ -61,7 +67,7 @@ export async function createMenuItems(menuItems: MenuItemDB[]) {
 // ------------------------------------------------
 // MEAL SCHEDULE
 // ------------------------------------------------
-export async function createMealSchedule(mealSchedule: MealSchedule[]) {
+export async function createMealSchedule(mealSchedule: MealScheduleDB[]) {
   await supabaseAdmin.from("meal_schedule").upsert(mealSchedule, {
     onConflict: "dining_hall,meal_type",
     ignoreDuplicates: false, // update rows if duplicates found
@@ -97,4 +103,184 @@ export async function getUserRatings(userId: string): Promise<Rating[]> {
   }
 
   return data;
+}
+
+export async function getMenuItemRatings(menuItemId: string) {
+  const { data, error } = await supabase
+    .from("rating")
+    .select(
+      `
+      id,
+      user_id,
+      menu_item_id,
+      rating,
+      description,
+      image_path,
+      created_at,
+      user (
+        first_name,
+        last_name
+      )
+    `
+    )
+    .eq("menu_item_id", menuItemId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getUserRatingForMenuItem(
+  userId: string,
+  menuItemId: string
+) {
+  const { data, error } = await supabase
+    .from("rating")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("menu_item_id", menuItemId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    // PGRST116 is "not found" error
+    throw error;
+  }
+
+  return data || null;
+}
+
+export async function getDiningHalls(): Promise<DiningHallDB[]> {
+  const { data, error } = await supabase.from("dining_hall").select("*");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getDailyMealSchedule(
+  diningHall: DiningHall
+): Promise<MealScheduleDB[]> {
+  const { data, error } = await supabase
+    .from("meal_schedule")
+    .select("*")
+    .eq("dining_hall", diningHall);
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getMenuItems(
+  diningHall: DiningHall,
+  mealType: string
+): Promise<MenuItemDB[]> {
+  const { data, error } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("dining_hall", diningHall)
+    .contains("meal_types", [mealType])
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getMenuItemsWithStats(
+  diningHall: DiningHall,
+  mealType: string
+) {
+  const { data: menuItems, error: menuItemsError } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("dining_hall", diningHall)
+    .contains("meal_types", [mealType])
+    .order("name", { ascending: true });
+
+  if (menuItemsError) {
+    throw menuItemsError;
+  }
+
+  if (!menuItems || menuItems.length === 0) {
+    return [];
+  }
+
+  // Get rating statistics for each menu item
+  const menuItemIds = menuItems.map((item) => item.id);
+  const { data: ratings, error: ratingsError } = await supabase
+    .from("rating")
+    .select("menu_item_id, rating")
+    .in("menu_item_id", menuItemIds);
+
+  if (ratingsError) {
+    throw ratingsError;
+  }
+
+  // Calculate stats for each menu item
+  const menuItemsWithStats = menuItems.map((item) => {
+    const itemRatings =
+      ratings?.filter((r) => r.menu_item_id === item.id) || [];
+    const totalRatings = itemRatings.length;
+    const averageRating =
+      totalRatings > 0
+        ? itemRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+        : 0;
+
+    return {
+      ...item,
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      totalRatings,
+    };
+  });
+
+  return menuItemsWithStats;
+}
+
+export async function getMenuItemById(id: string) {
+  const { data, error } = await supabase
+    .from("menu_item")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getMenuItemWithStats(id: string) {
+  const menuItem = await getMenuItemById(id);
+
+  // Get rating statistics
+  const { data: ratings, error: ratingsError } = await supabase
+    .from("rating")
+    .select("rating")
+    .eq("menu_item_id", id);
+
+  if (ratingsError) {
+    throw ratingsError;
+  }
+
+  const totalRatings = ratings?.length || 0;
+  const averageRating =
+    totalRatings > 0
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+      : 0;
+
+  return {
+    ...menuItem,
+    averageRating: Math.round(averageRating * 10) / 10,
+    totalRatings,
+  };
 }
