@@ -29,21 +29,21 @@ export default async function AccountPage({
   return (
     <div className="min-h-screen pt-24 px-4 flex justify-center items-start">
       <div className="w-full max-w-2xl space-y-6">
-        <Tabs defaultValue="ratings" className="w-full">
-          <TabsList>
-            <TabsTrigger value="ratings">Ratings</TabsTrigger>
-            {isOwnProfile && <TabsTrigger value="profile">Profile</TabsTrigger>}
-          </TabsList>
-          <TabsContent value="ratings" className="space-y-6 mt-6">
-            <RatingSummary
-              firstName={firstName}
-              totalRatings={summary.totalRatings}
-              averageRating={summary.averageRating}
-            />
-            <RatingList ratings={ratings} />
-          </TabsContent>
-          {isOwnProfile && (
-            <TabsContent value="profile" className="space-y-6 mt-6">
+        {isOwnProfile ? (
+          <Tabs defaultValue="ratings" className="w-full">
+            <TabsList>
+              <TabsTrigger value="ratings">Ratings</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+            </TabsList>
+            <TabsContent value="ratings" className="space-y-6 my-6">
+              <RatingSummary
+                firstName={firstName}
+                totalRatings={summary.totalRatings}
+                averageRating={summary.averageRating}
+              />
+              <RatingList ratings={ratings} />
+            </TabsContent>
+            <TabsContent value="profile" className="space-y-6 my-6">
               <ProfileEditForm
                 initialFirstName={firstName}
                 initialLastName={lastName}
@@ -52,8 +52,17 @@ export default async function AccountPage({
               <PasswordChangeForm />
               <DeleteAccountSection />
             </TabsContent>
-          )}
-        </Tabs>
+          </Tabs>
+        ) : (
+          <div className="space-y-6">
+            <RatingSummary
+              firstName={firstName}
+              totalRatings={summary.totalRatings}
+              averageRating={summary.averageRating}
+            />
+            <RatingList ratings={ratings} />
+          </div>
+        )}
       </div>
     </div>
   );
