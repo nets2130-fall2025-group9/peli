@@ -15,7 +15,7 @@ import {
 import { changePasswordSchema } from "@/lib/validations";
 import { useForm } from "@/hooks/useForm";
 
-export function PasswordChangeForm() {
+export const PasswordChangeForm = () => {
   const { user, isLoaded } = useUser();
 
   const {

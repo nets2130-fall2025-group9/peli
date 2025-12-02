@@ -5,7 +5,7 @@ interface Props {
   userId?: string | null;
 };
 
-export function UserNotFound({ userId }: Props) {
+export const UserNotFound = ({ userId }: Props) => {
   return (
     <div className="min-h-screen pt-24 px-4 flex justify-center items-center">
       <div className="flex flex-col items-center text-center space-y-6 max-w-md">

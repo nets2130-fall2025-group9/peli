@@ -6,7 +6,6 @@ import { useAuth, UserButton } from "@clerk/nextjs";
 
 export const Navbar = () => {
   const { userId } = useAuth();
-  console.log(userId);
 
   return (
     <div className="fixed top-0 z-50 w-full bg-background flex justify-between items-center gap-4 h-16 px-4 border-b">

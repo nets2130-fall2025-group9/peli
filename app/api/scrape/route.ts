@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { scrapeDiningHalls } from "@/lib/scraper";
-import { DiningHall, DiningHallData, MenuItem, MealSchedule } from "@/lib/types";
+import { DiningHallData, MenuItemDB, MealScheduleDB } from "@/lib/types";
 import { convertToTimestamptz } from "@/lib/utils";
 import { createMenuItems, createMealSchedule } from "@/supabase/db";
 
@@ -13,8 +13,8 @@ export async function GET(request: Request) {
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
     // group items by name and dining hall to create meal_types array
-    const itemsMap = new Map<string, MenuItem>();
-    const mealSchedules: MealSchedule[] = [];
+    const itemsMap = new Map<string, MenuItemDB>();
+    const mealSchedules: MealScheduleDB[] = [];
 
     for (const [diningHallName, mealData] of Object.entries(menuData)) {
       (["breakfast", "lunch", "dinner", "brunch"] as const).forEach(
@@ -28,7 +28,8 @@ export async function GET(request: Request) {
             mealInfo.end_time
           ) {
             mealSchedules.push({
-              dining_hall: diningHallName as DiningHall,
+              id: crypto.randomUUID(),
+              dining_hall: diningHallName,
               meal_type: mealType,
               start_time: convertToTimestamptz(mealInfo.start_time, today),
               end_time: convertToTimestamptz(mealInfo.end_time, today),
@@ -47,8 +48,9 @@ export async function GET(request: Request) {
               }
             } else {
               itemsMap.set(key, {
+                id: crypto.randomUUID(),
                 name: itemName,
-                dining_hall: diningHallName as DiningHall,
+                dining_hall: diningHallName,
                 meal_types: [mealType],
                 created_at: now,
                 updated_at: now,
