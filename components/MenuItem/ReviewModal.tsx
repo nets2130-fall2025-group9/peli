@@ -53,23 +53,37 @@ export function ReviewModal({
     setIsSubmitting(true);
     setError(null);
 
-    // TODO: Implement createMenuItemRating action
-    // const result = await createMenuItemRating({
-    //   menu_item_id: menuItemId,
-    //   rating,
-    //   description: description.trim() || null,
-    // });
+    try {
+      const response = await fetch("/api/ratings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          menu_item_id: menuItemId,
+          rating,
+          description: description.trim() || null,
+          image_path: null, // TODO: null for now, need to handle image upload
+        }),
+      });
 
-    // if (result.success) {
-    //   router.refresh();
-    //   onOpenChange(false);
-    //   setRating(0);
-    //   setDescription("");
-    // } else {
-    //   setError(result.error || "Failed to submit review");
-    // }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit review");
+      }
 
-    setIsSubmitting(false);
+      // Success! Close modal and refresh the page to show new review
+      onOpenChange(false);
+      router.refresh();
+      
+      // Reset form
+      setRating(0);
+      setDescription("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit review");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleStarClick = (value: number) => {
