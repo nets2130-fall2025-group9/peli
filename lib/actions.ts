@@ -47,20 +47,31 @@ export async function validatePennEmail(email: string) {
 }
 
 export async function getUserProfile(userId: string | null, id: string) {
-  const client = await clerkClient();
-  const profileUser = await client.users.getUser(id);
+  try {
+    const client = await clerkClient();
+    const profileUser = await client.users.getUser(id);
 
-  const isOwnProfile = userId === id;
+    const isOwnProfile = userId === id;
 
-  return {
-    firstName: profileUser.firstName,
-    lastName: profileUser.lastName,
-    emailAddress:
-      profileUser.emailAddresses.find(
-        (email) => email.id === profileUser.primaryEmailAddressId
-      )?.emailAddress || "",
-    isOwnProfile,
-  };
+    return {
+      success: true,
+      user: {
+        firstName: profileUser.firstName,
+        lastName: profileUser.lastName,
+        emailAddress:
+          profileUser.emailAddresses.find(
+            (email) => email.id === profileUser.primaryEmailAddressId
+          )?.emailAddress || "",
+        isOwnProfile,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch user profile",
+      user: null,
+    };
+  }
 }
 export async function updateUserProfile(data: {
   firstName: string;

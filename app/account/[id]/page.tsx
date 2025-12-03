@@ -16,14 +16,14 @@ export default async function AccountPage({
   const { userId } = await auth();
   const { id } = await params;
 
-  if (!id) {
+  const userProfile = await getUserProfile(userId, id);
+  if (!id || !userProfile.user) {
     return <UserNotFound userId={userId} />;
   }
 
-  const userProfile = await getUserProfile(userId, id);
   const userRatings = await getUserRatings(id);
 
-  const { firstName, lastName, emailAddress, isOwnProfile } = userProfile;
+  const { firstName, lastName, emailAddress, isOwnProfile } = userProfile.user;
   const { ratings, summary } = userRatings;
 
   return (
