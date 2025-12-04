@@ -320,7 +320,7 @@ export async function getTopUsers(limit: number = 10): Promise<{
     const topUsers = await getTopUsersFromDB(limit);
     return {
       success: true,
-      topUsers: topUsers || [],
+      topUsers: topUsers as TopUser[] || [],
     };
   } catch (error) {
     return {
