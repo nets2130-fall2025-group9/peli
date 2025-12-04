@@ -199,11 +199,15 @@ export async function getMenuItemsWithStats(
   diningHall: DiningHall,
   mealType: string
 ) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const { data: menuItems, error: menuItemsError } = await supabase
     .from("menu_item")
     .select("*")
     .eq("dining_hall", diningHall)
     .contains("meal_types", [mealType])
+    .gte("updated_at", today.toISOString())
     .order("name", { ascending: true });
 
   if (menuItemsError) {
