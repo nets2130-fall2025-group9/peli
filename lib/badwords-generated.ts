@@ -172,6 +172,8 @@ export const BAD_WORDS = [
   "butchdyke",
   "butt",
   "buttbang",
+  "buttcheeks",
+  "buttcheek",
   "butt-bang",
   "buttface",
   "buttfuck",
