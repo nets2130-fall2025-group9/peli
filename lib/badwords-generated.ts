@@ -692,6 +692,7 @@ export const BAD_WORDS = [
   "kaffre",
   "kafir",
   "kanake",
+  "katherine",
   "kid",
   "kigger",
   "kike",
