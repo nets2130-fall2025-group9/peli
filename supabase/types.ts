@@ -110,6 +110,7 @@ export type Database = {
           image_path: string | null
           menu_item_id: string
           rating: number
+          reports: number
           user_id: string
         }
         Insert: {
@@ -119,6 +120,7 @@ export type Database = {
           image_path?: string | null
           menu_item_id: string
           rating: number
+          reports?: number
           user_id: string
         }
         Update: {
@@ -128,6 +130,7 @@ export type Database = {
           image_path?: string | null
           menu_item_id?: string
           rating?: number
+          reports?: number
           user_id?: string
         }
         Relationships: [

@@ -8,7 +8,16 @@ export function createSupabaseClient() {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       async accessToken() {
-        return (await auth()).getToken()
+        // trying to get auth, there was an error here so can return null
+        try {
+          const authResult = await auth();
+          if (!authResult) {
+            return null;
+          }
+          return await authResult.getToken();
+        } catch (error) {
+          return null;
+        }
       },
     },
   )

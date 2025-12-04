@@ -23,6 +23,7 @@ export async function GET(
         rating,
         description,
         image_path,
+        reports,
         menu_item (
           name,
           dining_hall
@@ -127,6 +128,7 @@ export async function PUT(
         rating,
         description,
         image_path,
+        reports,
         menu_item (
           name,
           dining_hall

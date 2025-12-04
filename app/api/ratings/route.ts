@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         rating,
         description,
         image_path,
+        reports,
         menu_item (
           name,
           dining_hall
@@ -130,7 +131,8 @@ export async function POST(req: NextRequest) {
         created_at: new Date().toISOString(),
         rating,
         description: description || null,
-        image_path: image_path || null
+        image_path: image_path || null,
+        reports: 0
       })
       .select(`
         id,
@@ -140,6 +142,7 @@ export async function POST(req: NextRequest) {
         rating,
         description,
         image_path,
+        reports,
         menu_item (
           name,
           dining_hall
