@@ -89,6 +89,7 @@ export async function getUserRatings(userId: string): Promise<Rating[]> {
       description,
       image_path,
       created_at,
+      reports,
       menu_item (
         name,
         dining_hall
@@ -117,6 +118,7 @@ export async function getMenuItemRatings(menuItemId: string) {
       description,
       image_path,
       created_at,
+      reports,
       user (
         first_name,
         last_name

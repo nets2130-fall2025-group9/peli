@@ -111,6 +111,7 @@ export type Database = {
           menu_item_id: string
           rating: number
           user_id: string
+          reports: number
         }
         Insert: {
           created_at: string
@@ -120,6 +121,7 @@ export type Database = {
           menu_item_id: string
           rating: number
           user_id: string
+          reports: number
         }
         Update: {
           created_at?: string
@@ -129,6 +131,7 @@ export type Database = {
           menu_item_id?: string
           rating?: number
           user_id?: string
+          reports?: number | null
         }
         Relationships: [
           {
