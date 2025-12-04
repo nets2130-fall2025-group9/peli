@@ -11,6 +11,7 @@ import {
   MenuItemWithStats,
   MenuItemRating,
   Rating,
+  TopUser,
 } from "@/lib/types";
 import {
   getDiningHalls as getDiningHallsFromDB,
@@ -21,6 +22,8 @@ import {
   getMenuItemWithStats as getMenuItemWithStatsFromDB,
   getMenuItemRatings as getMenuItemRatingsFromDB,
   getUserRatingForMenuItem as getUserRatingForMenuItemFromDB,
+  getTopUsers as getTopUsersFromDB,
+  getTopMenuItems as getTopMenuItemsFromDB,
 } from "@/supabase/db";
 
 export async function validatePennEmail(email: string) {
@@ -304,6 +307,46 @@ export async function checkUserHasRated(
       success: false,
       hasRated: false,
       error: "Failed to check rating status",
+    };
+  }
+}
+
+export async function getTopUsers(limit: number = 10): Promise<{
+  success: boolean;
+  error?: string;
+  topUsers: TopUser[];
+}> {
+  try {
+    const topUsers = await getTopUsersFromDB(limit);
+    return {
+      success: true,
+      topUsers: topUsers as TopUser[] || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch top users",
+      topUsers: [],
+    };
+  }
+}
+
+export async function getTopMenuItems(limit: number = 10): Promise<{
+  success: boolean;
+  error?: string;
+  topMenuItems: MenuItemWithStats[];
+}> {
+  try {
+    const topMenuItems = await getTopMenuItemsFromDB(limit);
+    return {
+      success: true,
+      topMenuItems: topMenuItems || [],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: "Failed to fetch top menu items",
+      topMenuItems: [],
     };
   }
 }

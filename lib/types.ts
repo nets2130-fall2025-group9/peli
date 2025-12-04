@@ -61,3 +61,10 @@ export type MenuItemWithStats = MenuItemDB & {
   averageRating: number;
   totalRatings: number;
 };
+
+export type TopUser = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  reviewCount: number;
+};

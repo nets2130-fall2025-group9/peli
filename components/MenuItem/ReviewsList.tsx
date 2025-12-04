@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { MenuItemRating } from "@/lib/types";
 import { RatingStars } from "@/components/common/RatingStars";
 
@@ -6,7 +10,40 @@ interface ReviewsListProps {
   ratings: MenuItemRating[];
 }
 
-export function ReviewsList({ ratings }: ReviewsListProps) {
+export function ReviewsList({ ratings: initialRatings }: ReviewsListProps) {
+  const [ratings, setRatings] = useState(initialRatings);
+  const [reportingIds, setReportingIds] = useState<Set<string>>(new Set());
+
+  const handleReport = async (ratingId: string) => {
+    if (reportingIds.has(ratingId)) return;
+
+    setReportingIds((prev) => new Set(prev).add(ratingId));
+
+    try {
+      const response = await fetch(`/api/ratings/${ratingId}/report`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to report rating");
+      }
+
+      const data = await response.json();
+
+      if (data.deleted) {
+        setRatings((prev) => prev.filter((rating) => rating.id !== ratingId));
+      }
+    } catch (error) {
+      console.error("Error reporting rating:", error);
+    } finally {
+      setReportingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(ratingId);
+        return next;
+      });
+    }
+  };
+
   if (ratings.length === 0) {
     return (
       <Card>
@@ -58,13 +95,24 @@ export function ReviewsList({ ratings }: ReviewsListProps) {
                 />
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              {new Date(rating.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {new Date(rating.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleReport(rating.id)}
+                disabled={reportingIds.has(rating.id)}
+                className="text-xs text-muted-foreground hover:text-destructive"
+              >
+                {reportingIds.has(rating.id) ? "Reporting..." : "Report"}
+              </Button>
+            </div>
           </div>
         ))}
       </CardContent>

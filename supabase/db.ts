@@ -89,6 +89,7 @@ export async function getUserRatings(userId: string): Promise<Rating[]> {
       description,
       image_path,
       created_at,
+      reports,
       menu_item (
         name,
         dining_hall
@@ -117,6 +118,7 @@ export async function getMenuItemRatings(menuItemId: string) {
       description,
       image_path,
       created_at,
+      reports,
       user (
         first_name,
         last_name
@@ -287,4 +289,102 @@ export async function getMenuItemWithStats(id: string) {
     averageRating: Math.round(averageRating * 10) / 10,
     totalRatings,
   };
+}
+
+// ------------------------------------------------
+// LEADERBOARD
+// ------------------------------------------------
+export async function getTopUsers(limit: number = 10) {
+  const { data, error } = await supabase
+    .from("rating")
+    .select("user_id, user(first_name, last_name)")
+    .order("user_id");
+
+  if (error) {
+    throw error;
+  }
+
+  // Group by user and count reviews
+  const userReviewCounts = data.reduce((acc: any, rating: any) => {
+    const userId = rating.user_id;
+    if (!acc[userId]) {
+      acc[userId] = {
+        userId,
+        firstName: rating.user?.first_name || "Unknown",
+        lastName: rating.user?.last_name || "",
+        reviewCount: 0,
+      };
+    }
+    acc[userId].reviewCount += 1;
+    return acc;
+  }, {});
+
+  // Convert to array and sort by review count
+  const topUsers = Object.values(userReviewCounts)
+    .sort((a: any, b: any) => b.reviewCount - a.reviewCount)
+    .slice(0, limit);
+
+  return topUsers;
+}
+
+export async function getTopMenuItems(limit: number = 10) {
+  // Get all menu items with their ratings
+  const { data: menuItems, error: menuItemsError } = await supabase
+    .from("menu_item")
+    .select("*");
+
+  if (menuItemsError) {
+    throw menuItemsError;
+  }
+
+  if (!menuItems || menuItems.length === 0) {
+    return [];
+  }
+
+  // Get all ratings for these menu items
+  const { data: ratings, error: ratingsError } = await supabase
+    .from("rating")
+    .select("menu_item_id, rating");
+
+  if (ratingsError) {
+    throw ratingsError;
+  }
+
+  // Calculate stats for each menu item
+  const menuItemsWithStats = menuItems
+    .map((item) => {
+      const itemRatings =
+        ratings?.filter((r) => r.menu_item_id === item.id) || [];
+      const totalRatings = itemRatings.length;
+      const averageRating =
+        totalRatings > 0
+          ? itemRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+          : 0;
+
+      return {
+        ...item,
+        averageRating: Math.round(averageRating * 100) / 100, // Keep more precision for sorting
+        totalRatings,
+      };
+    })
+    .filter((item) => item.totalRatings > 0); // Only include items with ratings
+
+  // Sort by: 1) average rating (desc), 2) total ratings (desc), 3) name (asc)
+  const topMenuItems = menuItemsWithStats
+    .sort((a, b) => {
+      if (b.averageRating !== a.averageRating) {
+        return b.averageRating - a.averageRating;
+      }
+      if (b.totalRatings !== a.totalRatings) {
+        return b.totalRatings - a.totalRatings;
+      }
+      return a.name.localeCompare(b.name);
+    })
+    .slice(0, limit)
+    .map((item) => ({
+      ...item,
+      averageRating: Math.round(item.averageRating * 10) / 10, // Round to 1 decimal for display
+    }));
+
+  return topMenuItems;
 }
